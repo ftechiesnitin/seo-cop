@@ -1,0 +1,48 @@
+{
+	"name": "seo-cop",
+	"version": "1.0.0",
+	"description": "Node.js package to parse HTML and show SEO defects",
+	"main": "./src/parser.js",
+	"directories": {
+		"test": "test"
+	},
+	"bin": {
+		"seo-cop": "./index.js"
+	},
+	"scripts": {
+		"test": "node ./node_modules/mocha/bin/mocha",
+		"doc": "rm -rf ./doc && jsdoc -c ./config/jsdoc.json -t ./node_modules/ink-docstrap/template --readme ./README.md"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/maulik887/seo-cop.git"
+	},
+	"keywords": [
+		"SEO",
+		"validation",
+		"HTML",
+		"parser",
+		"check",
+		"rules"
+	],
+	"author": "Maulik Patel <maulik.info.tech@gmail.com> (http://maulik.me)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/maulik887/seo-cop/issues"
+	},
+	"homepage": "https://github.com/maulik887/seo-cop#readme",
+	"dependencies": {
+		"assumejs": "^0.2.3",
+		"chai": "^4.1.2",
+		"chai-subset": "^1.6.0",
+		"cheerio": "^1.0.0-rc.2",
+		"htmlparser": "^1.7.7",
+		"sprintf-js": "^1.1.1",
+		"yargs": "^10.1.0"
+	},
+	"devDependencies": {
+		"jsdoc": "^3.5.5",
+		"mocha": "^5.0.1",
+		"ink-docstrap": "^1.3.2"
+	}
+}

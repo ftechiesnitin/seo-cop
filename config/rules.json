@@ -1,0 +1,93 @@
+{
+    "img": {
+        "isEnabled": true,
+        "query": "img",
+        "conditions": [
+            {
+                "attribute": {
+                    "condition": "to.have.property",
+                    "args": "alt"
+                },
+                "error": "There are %d <img> tag without alt attribute"
+            }
+        ]
+    },
+    "a": {
+        "isEnabled": true,
+        "query": "a",
+        "conditions": [
+            {
+                "attribute": {
+                    "condition": "to.have.property",
+                    "args": "rel"
+                },
+                "error": "There are %d <a> tag without rel attribute"
+            }
+        ]
+    },
+    "head": {
+        "isEnabled": true,
+        "query": "head",
+        "conditions": [
+            {
+                "children": {
+                    "condition": "to.containSubset",
+                    "args": [{
+                        "name": "title"
+                    }]
+                },
+                "error": "HTML without <title> tag"
+            },
+            {
+                "children": {
+                    "condition": "to.containSubset",
+                    "args": [{
+                        "name": "meta",
+                        "attribs": {
+                            "name": "description"
+                        }
+                    }]
+                },
+                "error": "<head> without <meta name='descriptions' ... /> tag"
+            },
+            {
+                "children": {
+                    "condition": "to.containSubset",
+                    "args": [{
+                        "name": "meta",
+                        "attribs": {
+                            "name": "keywords"
+                        }
+                    }]
+                },
+                "error": "<head> without <meta name='keywords' ... /> tag"
+            }
+        ]
+    },
+    "strong": {
+        "isEnabled": true,
+        "query": "strong",
+        "conditions": [
+            {
+                "self": {
+                    "condition": "length.to.be.below",
+                    "args": 3
+                },
+                "error": "There are more than 3 <strong> tag in HTML"
+            }
+        ]
+    },
+    "h1": {
+        "isEnabled": true,
+        "query": "h1",
+        "conditions": [
+            {
+                "self": {
+                    "condition": "length.to.be.below",
+                    "args": 2
+                },
+                "error": "There are more than one <h1> tag in HTML"
+            }
+        ]
+    }
+}

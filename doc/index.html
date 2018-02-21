@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>SEO COP Index</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cerulean.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">SEO COP</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Parser.html">Parser</a></li><li><a href="RuleCondition.html">RuleCondition</a></li><li><a href="RuleConfiguration.html">RuleConfiguration</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-8">
+	
+		<div id="main">
+			
+
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+
+
+    <section class="readme-section">
+        <article><h1>SEO Cop</h1><h2>Node.js package to parse HTML and show SEO defects</h2><h4>Installation</h4><p>Install SEO Cop globally using <a href="https://www.npmjs.com/">npm</a>: </p>
+<pre class="prettyprint source lang-bash"><code>npm install -g seo-cop</code></pre><p>To install the latest version on npm locally and save it in your package's package.json file:</p>
+<pre class="prettyprint source lang-bash"><code>npm install --save-dev seo-cop</code></pre><h4>Usage &amp; Examples</h4><pre class="prettyprint source"><code>var Parser = require('parser');
+
+//simple HTML file parsing and printing defects on console
+var parser = new Parser({}, &quot;console&quot;);
+parser.parseFile(&quot;home.html&quot;);
+
+
+//input stream and parse data by reading stream. Print defects on console
+var fs = require('fs');
+var parser = new Parser({}, &quot;console&quot;);
+var s = fs.createReadStream(&quot;home.html&quot;);
+parser.parseStream(s);
+
+
+//simple HTML file parsing and write defacts in output file
+var parser = new Parser({}, &quot;file&quot;);
+parser.parseFile(&quot;home.html&quot;);
+
+
+//simple HTML file parsing and get result on write stream
+var parser = new Parser({}, &quot;stream&quot;);
+var wStream = parser.outputWriteStream;
+wStream.write = function(data, _, done) {
+    console.log(data);
+    done();
+}
+parser.parseFile(&quot;home.html&quot;);
+
+
+//Disable, Override, Define new rules and match conditions
+var parser = new Parser({
+    &quot;h1&quot;: {
+        &quot;isEnabled&quot;: false //disable default h1 rule
+    },
+    &quot;strong&quot;: {
+        &quot;isEnabled&quot;: true,
+        &quot;query&quot;: &quot;strong&quot;,
+        &quot;conditions&quot;: [
+            {
+                &quot;self&quot;: {
+                    &quot;condition&quot;: &quot;length.to.be.below&quot;,
+                    &quot;args&quot;: 5 //Override default rule condition
+                },
+                &quot;error&quot;: &quot;There are more than 5 &lt;strong> tag in HTML&quot;
+            }
+        ]
+    },
+    &quot;custom&quot;: { //define custom rule
+        &quot;isEnabled&quot;: true,
+        &quot;query&quot;: &quot;head&quot;,
+        &quot;conditions&quot;: [
+            {
+                &quot;children&quot;: {
+                    &quot;condition&quot;: &quot;to.containSubset&quot;,
+                    &quot;args&quot;: [{
+                        &quot;name&quot;: &quot;meta&quot;,
+                        &quot;attribs&quot;: {
+                            &quot;name&quot;: &quot;robots&quot;
+                        }
+                    }]
+                },
+                &quot;error&quot;: &quot;&lt;head> without &lt;meta name='robots' ... /> tag&quot;
+            }
+        ]
+    }
+}, &quot;console&quot;);
+parser.parseFile(&quot;home.html&quot;);
+
+</code></pre><h4>Development</h4><p>Copy git repository and run:</p>
+<pre class="prettyprint source lang-bash"><code>npm install</code></pre><p>This should setup development environment.</p>
+<p>Once satisfied with code changes, update tests and run:</p>
+<pre class="prettyprint source lang-bash"><code>npm test</code></pre><p>To update the documentation, edit jsDoc comments and run:</p>
+<pre class="prettyprint source lang-bash"><code>npm run-script doc</code></pre><h4>License</h4><p>MIT</p></article>
+    </section>
+
+
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+		<div class="col-md-3">
+			<div id="toc" class="col-md-3 hidden-xs hidden-sm hidden-md"></div>
+		</div>
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+	
+		on Wed Feb 21st 2018
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>
