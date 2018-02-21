@@ -18,7 +18,7 @@ npm install --save-dev seo-cop
 #### Usage & Examples
 
 ```
-var Parser = require('parser');
+var Parser = require('seo-cop');
 
 //simple HTML file parsing and printing defects on console
 var parser = new Parser({}, "console");

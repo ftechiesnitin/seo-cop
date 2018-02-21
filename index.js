@@ -1,4 +1,4 @@
-#!/usr/bin/env 
+#! /usr/bin/env node
 
 'use strict';
 var fs = require('fs');
@@ -36,5 +36,5 @@ if (argv.stream) {
 } else if (argv.file) {
     parser.parseFile(argv.file);
 } else {
-    console.log("Usage: index.js --file [file path] OR index.js --stream [file path]");
+    console.log("Usage: seo-cop --file [file path] OR index.js --stream [file path]");
 }

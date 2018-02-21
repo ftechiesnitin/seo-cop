@@ -7,7 +7,7 @@
 		"test": "test"
 	},
 	"bin": {
-		"seo-cop": "./index.js"
+		"seo-cop": "index.js"
 	},
 	"scripts": {
 		"test": "node ./node_modules/mocha/bin/mocha",
