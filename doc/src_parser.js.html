@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>SEO COP Source: src/parser.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cerulean.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">SEO COP</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Parser.html">Parser</a></li><li><a href="RuleCondition.html">RuleCondition</a></li><li><a href="RuleConfiguration.html">RuleConfiguration</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: src/parser.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">'use strict';
+
+var fs = require('fs');
+var cheerio = require('cheerio');
+var sprintf = require("sprintf-js").sprintf;
+var stream = require('stream');
+var util = require('util');
+var Readable = require('stream').Readable;
+var Writable = require('stream').Writable;
+//load default rules
+var defaultRules = require("../config/rules.json");
+var baseRule = require('./rules');
+
+/**
+ * Creates a new Parser object.
+ * @class Parser
+ * @constructor
+ * @param {RuleConfiguration|string} config A valid configuration options object or configuration as a JSON string.
+ * @param {string} [output=console] Type of output. Supported output types are console, file &amp; stream. For file type, result.txt will be created after successful execution.
+ * @returns {Parser}
+ * @since 1.0.0
+ * @example
+ *
+ * var Parser = require('parser');
+ *
+ * var parser = new Parser({}, "console");
+ *
+ * parser.parseFile("home.html");
+ * 
+ *
+ */
+function Parser(config, output) {
+    this.rules = Object.assign(JSON.parse(JSON.stringify(defaultRules)), baseRule);
+
+    var me = this;
+    Object.keys(this.rules).forEach(key => {
+        if (key === "_base") return;
+    
+        //add condition level base properties
+        var conditions = [];
+        me.rules[key].conditions.forEach(con => {
+            conditions.push(Object.assign(con, me.rules["_base"]));
+        });
+        me.rules[key].conditions = conditions;
+        me.rules[key].findElements = me.rules["_base"].findElements;
+        me.rules[key].parse = me.rules["_base"].parse;
+    });
+    
+    if (typeof config === "string") config = JSON.parse(config);
+    this.output = (output == undefined || output == null ? "console" : output);
+
+    if (this.output == "stream") {
+        this._outputReadStream; //stream on which result will be written, outputWriteStream will pipe the data
+        this._outputWriteStream = this._createWritableStream();
+
+        /**
+        @property {Object} outputWriteStream Writable node stream on which output will be written.
+        @readonly
+        **/
+        Object.defineProperty(this, 'outputWriteStream', {
+            get: function() { 
+                return me._outputWriteStream; 
+            }
+        });
+    }
+    
+    //override default rule properties; enable/disable, override behavior
+    //or add new rules to config
+    if (typeof config === "object") {
+        Object.keys(config).forEach(key => {
+            if (!me.rules[key] &amp;&amp; (!config[key].hasOwnProperty("isEnabled") || !config[key].hasOwnProperty("query") || !config[key].hasOwnProperty("conditions"))) {
+                return console.log("Invalid rule " + key);
+            }
+            if (!me.rules[key]) { //new rule defined in config
+                me.rules[key] = {};
+                me.rules[key].findElements = me.rules["_base"].findElements;
+                me.rules[key].parse = me.rules["_base"].parse;
+            }
+
+            if (config[key].isEnabled !== undefined) {
+                me.rules[key].isEnabled = !!config[key].isEnabled;
+            }
+            if (config[key].query !== undefined)
+                me.rules[key].query = config[key].query;
+            if (config[key].conditions !== undefined &amp;&amp; config[key].conditions instanceof Array) {
+                var conditions = [];
+                config[key].conditions.forEach(con => {
+                    conditions.push(Object.assign(con, me.rules["_base"]));
+                });
+                me.rules[key].conditions = conditions
+            }
+        });
+    }
+}
+
+Parser.prototype._createWritableStream = function() {
+    this._outputReadStream = new Readable({
+        objectMode: true,
+        read() {}
+    });
+
+    var wStream = new Writable({
+        objectMode: true,
+        write: (data, _, done) => { //write on console by default, user need to override write
+            console.log(data);
+            done();
+        }
+    });
+
+    this._outputReadStream.pipe(wStream);
+    return wStream;
+}
+
+Parser.prototype._parseHTML = function(html) {
+    var $ = cheerio.load(html, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+        lowerCaseTags: true,
+        lowerCaseAttributeNames: true
+    });
+    return $;
+}
+
+/**
+ * Parse HTML. 
+ * @method parse
+ * @public
+ * @param {string} html - HTML content.
+ * @memberof Parser.prototype
+ * @since 1.0.0
+ */
+Parser.prototype.parse = function(html) {
+    var elements = this._parseHTML(html), me = this;
+    Object.keys(this.rules).forEach(key => {
+        if (key === "_base") return;
+        var rule = me.rules[key];
+        if (rule.isEnabled) {
+            return rule.parse(elements, rule.conditions);
+        }
+    });
+}
+
+Parser.prototype.returnResult = function() {
+    var me = this;
+    var _fnOutputString = function() {
+        var str = "";
+        Object.keys(me.rules).forEach(key => {
+            if (key === "_base") return;
+            var rule = me.rules[key];
+            if (rule.isEnabled) {
+                rule.conditions.forEach(con => {
+                    if (con.failCount > 0) {
+                        str = str == "" ? sprintf(con.error, con.failCount) : str + "\n" + sprintf(con.error, con.failCount);
+                    }
+                });
+            }
+        });
+        return str;
+    }
+    if (this.output === "console") {
+        console.log(_fnOutputString());
+    } else if (this.output == "text") { //for tests
+        return _fnOutputString();
+    } else if (this.output == "stream") {
+        this._outputReadStream.push(_fnOutputString());
+    } else { //write file
+        var fileName = "result.txt";
+        fs.writeFile(fileName, _fnOutputString(), function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log(sprintf("Parsed HTML and saved output in %s file", fileName));
+        });
+    }
+}
+
+/**
+ * Parse HTML file. 
+ * @method parseFile
+ * @public
+ * @param {string} file - Valid disk path of an HTML file.
+ * @memberof Parser.prototype
+ * @since 1.0.0
+ */
+Parser.prototype.parseFile = function(file) {
+    var me = this;
+    fs.readFile(file, function read(err, data) {
+        if (err) {
+            console.log("Invalid file path");
+            return;
+        }
+        me.parse(data.toString().replace((/  |\r\n|\n|\r/gm),"")); //replace newlines and tabs
+        me.returnResult();
+    });
+}
+
+/**
+ * Parse HTML from stream. 
+ * @method parseStream
+ * @public
+ * @param {Object} stream - Valid node readable stream.
+ * @memberof Parser.prototype
+ * @since 1.0.0
+ */
+Parser.prototype.parseStream = function(stream) {
+    if (typeof stream !== "object" &amp;&amp; typeof stream.on !== "function") {
+        return console.log("Invalid stream object");
+    }
+    var me = this;
+    stream.on('data', function (buf) {
+        me.parse(buf.toString().replace((/  |\r\n|\n|\r/gm),"")); //replace newlines and tabs
+    });
+
+    stream.on('end', function () {
+        me.returnResult();
+    });
+}
+
+module.exports = Parser;
+
+</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+	
+		on Wed Feb 21st 2018
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>

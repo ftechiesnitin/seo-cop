@@ -1,0 +1,52 @@
+{
+    "tags": {
+        "allowUnknownTags": true,
+        "dictionaries": [
+            "jsdoc",
+            "closure"
+        ]
+    },
+    "source": {
+        "include": [
+            "src",
+            "config"
+        ],
+        "exclude": [
+            "node_module",
+            "doc"
+        ],
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "plugins": [
+        "plugins/markdown"
+    ],
+    "templates": {
+        "logoFile": "",
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "dateFormat": "ddd MMM Do YYYY",
+        "outputSourceFiles": true,
+        "outputSourcePath": true,
+        "systemName": "SEO COP",
+        "footer": "",
+        "copyright": "",
+        "navType": "vertical",
+        "theme": "cerulean",
+        "linenums": true,
+        "collapseSymbols": false,
+        "inverseNav": true,
+        "highlightTutorialCode": true
+    },
+    "opts": {
+        "private": true,
+        "lenient": true,
+        "encoding": "utf8",
+        "destination": "doc",
+        "recurse": true
+    },
+    "markdown": {
+        "parser": "gfm",
+        "hardwrap": true
+    }
+}
